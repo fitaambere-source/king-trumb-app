@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>King Trumb - Earn KTR</title>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            background: linear-gradient(135deg, #1a1a2e, #16213e);
+            color: white;
+            font-family: Arial, sans-serif;
+            text-align: center;
+            padding: 20px;
+            min-height: 100vh;
+        }
+        .container { max-width: 400px; margin: 0 auto; }
+        .header {
+            background: linear-gradient(45deg, #FFD700, #FFA500);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            font-size: 2.5em;
+            font-weight: bold;
+            margin: 20px 0;
+            text-shadow: 0 0 20px rgba(255,215,0,0.5);
+        }
+        .token-display {
+            background: rgba(255,215,0,0.1);
+            border: 2px solid #FFD700;
+            border-radius: 15px;
+            padding: 20px;
+            margin: 20px 0;
+            animation: glow 2s infinite;
+        }
+        @keyframes glow {
+            0%, 100% { box-shadow: 0 0 10px rgba(255,215,0,0.3); }
+            50% { box-shadow: 0 0 20px rgba(255,215,0,0.6); }
+        }
+        .token-amount {
+            font-size: 3em;
+            font-weight: bold;
+            color: #FFD700;
+        }
+        .tap-area {
+            width: 200px;
+            height: 200px;
+            background: radial-gradient(circle, #FFD700, #FFA500);
+            border-radius: 50%;
+            margin: 30px auto;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 4em;
+            border: 4px solid #B8860B;
+            animation: pulse 1.5s infinite;
+        }
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+        }
+        .tap-area:active {
+            animation: none;
+            transform: scale(0.95);
+        }
+        .buttons {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin: 20px 0;
+        }
+        .btn {
+            background: linear-gradient(45deg, #FFD700, #FFA500);
+            border: none;
+            padding: 15px;
+            border-radius: 10px;
+            color: #1a1a2e;
+            font-weight: bold;
+            cursor: pointer;
+        }
+        .energy-bar {
+            width: 100%;
+            height: 10px;
+            background: #333;
+            border-radius: 5px;
+            margin: 10px 0;
+            overflow: hidden;
+        }
+        .energy-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #FFD700, #FFA500);
+            border-radius: 5px;
+            transition: width 0.5s;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">👑 KING TRUMB</div>
+        
+        <div class="token-display">
+            <div class="token-amount" id="balance">0 KTR</div>
+            <div>Available Balance</div>
+        </div>
+
+        <div class="energy-bar">
+            <div class="energy-fill" id="energy" style="width: 100%;"></div>
+        </div>
+        <div>Energy: <span id="energyText">100/100</span></div>
+
+        <div class="tap-area" id="tapButton">
+            👑
+        </div>
+        <div>Tap the crown to earn KTR!</div>
+
+        <div class="buttons">
+            <button class="btn" onclick="withdraw()">💰 Withdraw</button>
+            <button class="btn" onclick="invite()">👥 Invite</button>
+            <button class="btn" onclick="boost()">🚀 Boost</button>
+            <button class="btn" onclick="shop()">🛍️ Shop</button>
+        </div>
+    </div>
+
+    <script>
+        class KingTrumbGame {
+            constructor() {
+                this.balance = 0;
+                this.energy = 100;
+                this.tapPower = 1;
+                this.init();
+            }
+
+            init() {
+                // Load saved data
+                const saved = localStorage.getItem('kingTrumbData');
+                if (saved) {
+                    const data = JSON.parse(saved);
+                    this.balance = data.balance || 0;
+                    this.energy = data.energy || 100;
+                    this.tapPower = data.tapPower || 1;
+                }
+
+                this.setupEventListeners();
+                this.updateUI();
+                this.startEnergyRecovery();
+            }
+
+            setupEventListeners() {
+                document.getElementById('tapButton').addEventListener('click', () => this.tap());
+            }
+
+            tap() {
+                if (this.energy > 0) {
+                    this.balance += this.tapPower;
+                    this.energy -= 1;
+                    this.updateUI();
+                    this.saveGame();
+                    this.createTapEffect();
+                }
+            }
+
+            updateUI() {
+                document.getElementById('balance').textContent = this.balance + ' KTR';
+                document.getElementById('energy').style.width = this.energy + '%';
+                document.getElementById('energyText').textContent = this.energy + '/100';
+            }
+
+            createTapEffect() {
+                const effect = document.createElement('div');
+                effect.textContent = '+' + this.tapPower + ' KTR';
+                effect.style.position = 'fixed';
+                effect.style.color = '#FFD700';
+                effect.style.fontWeight = 'bold';
+                effect.style.pointerEvents = 'none';
+                effect.style.animation = 'floatUp 1s forwards';
+                effect.style.left = '50%';
+                effect.style.top = '50%';
+                effect.style.transform = 'translate(-50%, -50%)';
+                
+                document.body.appendChild(effect);
+                setTimeout(() => effect.remove(), 1000);
+            }
+
+            startEnergyRecovery() {
+                setInterval(() => {
+                    if (this.energy < 100) {
+                        this.energy += 1;
+                        this.updateUI();
+                        this.saveGame();
+                    }
+                }, 3000);
+            }
+
+            saveGame() {
+                const data = {
+                    balance: this.balance,
+                    energy: this.energy,
+                    tapPower: this.tapPower
+                };
+                localStorage.setItem('kingTrumbData', JSON.stringify(data));
+            }
+        }
+
+        // Initialize game
+        const game = new KingTrumbGame();
+
+        // Button functions
+        function withdraw() {
+            if (game.balance < 1000) {
+                alert('You need at least 1000 KTR to withdraw (1 TON)');
+                return;
+            }
+            alert('Withdrawal feature will be added soon! Keep earning KTR! 🚀');
+        }
+
+        function invite() {
+            const link = 'https://t.me/KingTrumbBot';
+            alert(`Share this link with friends:\n${link}\n\nYou'll earn 1000 KTR for each friend who joins!`);
+        }
+
+        function boost() {
+            alert('Boost shop coming soon! Your taps will earn more KTR! 💪');
+        }
+
+        function shop() {
+            alert('Shop features coming soon! Special items and upgrades! 🛍️');
+        }
+
+        // Add animation
+        const style = document.createElement('style');
+        style.textContent = `
+            @keyframes floatUp {
+                0% { transform: translate(-50%, -50%) scale(1); opacity: 1; }
+                100% { transform: translate(-50%, -100px) scale(1.2); opacity: 0; }
+            }
+        `;
+        document.head.appendChild(style);
+
+        // Telegram Web App integration
+        if (window.Telegram && Telegram.WebApp) {
+            Telegram.WebApp.expand();
+            Telegram.WebApp.ready();
+        }
+    </script>
+</body>
+</html>
